@@ -114,15 +114,17 @@ class TaskBoard {
         return task.status === TaskStatus.Finished;
       });
       this.assignedTasks = relevantTasks;
-      this.renderProjects();
+      this.renderTasks();
     })
 
     this.attach();  // sectionブロックを描画
     this.renderContent(); // sectionブロック内要素（h2・ul）への描画
   }
 
-  private renderProjects() {
+  private renderTasks() {
     const ulEl = document.getElementById(`${this._type}-projects-list`)! as HTMLUListElement;
+    // リストをクリア
+    ulEl.innerHTML = '';
     for (const prjItem of this.assignedTasks) {
       const liEl = document.createElement('li');
       liEl.textContent = prjItem.title;
