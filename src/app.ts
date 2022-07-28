@@ -84,28 +84,52 @@ function validate(target: ValidationObj): boolean {
   return isValid;
 }
 
-/**************************** リストの中のProjectを表示するクラス ***************************FF*/
+/**************************** コンポーネントクラス（抽象クラス） ****************************/
+abstract class Component<T extends HTMLElement, U extends HTMLElement> {
+  templateEl: HTMLTemplateElement;
+  hostEl: T;
+  element: U;
+  
+  constructor(templateId: string, hostElId: string, insertAtStart: boolean,  newElId?: string) {
+    this.templateEl = document.getElementById(templateId)! as HTMLTemplateElement;
+    this.hostEl = document.getElementById(hostElId)! as T;
+
+    const importedNode = document.importNode(this.templateEl.content, true);
+    this.element = importedNode.firstElementChild as U;
+    if (newElId) {
+      this.element.id = newElId;
+    }
+    this.attach(insertAtStart);
+  }
+  
+  abstract configure(): void;
+  abstract renderContent(): void;
+
+  /* 要素を追加 */
+  private attach(insertAtBeginning: boolean) {
+    this.hostEl.insertAdjacentElement(insertAtBeginning ? 'afterbegin' : 'beforeend', this.element);
+  }
+}
 
 
 /**************************** Projectのリスト（タスクボード）を表示するクラス ****************************/
-class TaskBoard {
-  templateEl: HTMLTemplateElement;
-  hostEl: HTMLDivElement;
-  sectionEl: HTMLElement;
+class TaskBoard extends Component<HTMLDivElement, HTMLElement>{
+
   assignedTasks: Task[]; // プロジェクトの配列を保存するためのプロパティ
 
   constructor(private _type: 'active' | 'finished') {
-    this.templateEl = document.getElementById('project-list')! as HTMLTemplateElement;
-    this.hostEl = document.getElementById('app')! as HTMLDivElement;
+    super('project-list', 'app', false, `${_type}-projects` );
+
     this.assignedTasks = [];
 
-    const importedNode = document.importNode(this.templateEl.content, true);
-    this.sectionEl = importedNode.firstElementChild as HTMLElement;
-    this.sectionEl.id = `${this._type}-projects`;
+    this.configure();
+    this.renderContent(); // sectionブロック内要素（h2・ul）への描画
+  }
+
+  configure(): void {
 
     // 新規タスク追加時に、呼び出される
     projectState.addListener((tasks: Task[]) => {
-
       // 新規タスクのみ配列に新たな配列'relevantTasks'に値を格納
       const relevantTasks = tasks.filter((task): boolean => {
         if (this._type === 'active') {  
@@ -116,11 +140,18 @@ class TaskBoard {
       this.assignedTasks = relevantTasks;
       this.renderTasks();
     })
+  }
+  renderContent() {
+    // section要素の中のh2要素にテキストを追加
+    const h2El = this.element.querySelector('h2')!;
+    h2El.textContent = this._type === 'active' ? '実行中プロジェクト' : '完了プロジェクト'; 
 
-    this.attach();  // sectionブロックを描画
-    this.renderContent(); // sectionブロック内要素（h2・ul）への描画
+    // section要素の中のul要素にid属性を追加
+    const ulEl = this.element.querySelector('ul')!;
+    ulEl.id = `${this._type}-projects-list`;
   }
 
+  
   private renderTasks() {
     const ulEl = document.getElementById(`${this._type}-projects-list`)! as HTMLUListElement;
     // リストをクリア
@@ -131,52 +162,38 @@ class TaskBoard {
       ulEl.appendChild(liEl);
     }
   }
-
-  private renderContent() {
-    // section要素の中のh2要素にテキストを追加
-    const h2El = this.sectionEl.querySelector('h2')!;
-    h2El.textContent = this._type === 'active' ? '実行中プロジェクト' : '完了プロジェクト'; 
-
-    // section要素の中のul要素にid属性を追加
-    const ulEl = this.sectionEl.querySelector('ul')!;
-    ulEl.id = `${this._type}-projects-list`;
-  }
-
-  private attach() {
-    this.hostEl.insertAdjacentElement('beforeend', this.sectionEl); // 終了タグの前
-  }
+  
 
 }
 /**************************** Formの表示・入力値の取得を行うクラス ****************************/
-class ProjectInput {
-  templateEl: HTMLTemplateElement;
-  hostEl: HTMLDivElement;
-  element: HTMLFormElement;
+class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
+
   // 入力フォームへの参照
   titleInputElement: HTMLInputElement;
   descriptionInputElement: HTMLInputElement;
   manDayInputElement: HTMLInputElement;
-
-
+  
   constructor() {
-    this.templateEl = document.getElementById('project-input')! as HTMLTemplateElement;
-    this.hostEl = document.getElementById('app')! as HTMLDivElement;
-
-    // templateタグ（子孫要素も含む）をインポート・複製
-    const importedNode = document.importNode(this.templateEl.content, true);
-    // 最初の子要素をHTMLFormElement型で代入
-    this.element = importedNode.firstElementChild as HTMLFormElement;
-    this.element.id = 'user-input';
-
+    super('project-input', 'app', true, 'user-input');
+    
+    
     /* 入力フォームへの参照 */
     this.titleInputElement =  this.element.querySelector('#title') as HTMLInputElement;
     this.descriptionInputElement =  this.element.querySelector('#description') as HTMLInputElement;
     this.manDayInputElement =  this.element.querySelector('#manday') as HTMLInputElement;
-
+    
     this.configure();
-    this.attach();
   }
 
+  /* イベントリスナーを設定 */
+  configure() {
+    this.element.addEventListener('submit', this.submitHandler.bind(this));
+  }
+
+  renderContent(): void {
+    // ProjectInputクラスでは使わないメソッドのため、定義のみ
+  }
+  
   private gatherUserInput(): [string, string, number] | void {
     const titleVal = this.titleInputElement.value;
     const descriptionVal = this.descriptionInputElement.value;
@@ -228,15 +245,6 @@ class ProjectInput {
     }
   } 
 
-  /* イベントリスナーを設定 */
-  private configure() {
-    this.element.addEventListener('submit', this.submitHandler.bind(this));
-  }
-
-  /* 要素を追加 */
-  private attach() {
-    this.hostEl.insertAdjacentElement('afterbegin', this.element);
-  }
 }
 
 const prjInput = new ProjectInput();
