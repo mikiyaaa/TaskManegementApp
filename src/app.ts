@@ -92,20 +92,28 @@ class TaskBoard {
   templateEl: HTMLTemplateElement;
   hostEl: HTMLDivElement;
   sectionEl: HTMLElement;
-  assignedProjects: Task[]; // プロジェクトの配列を保存するためのプロパティ
+  assignedTasks: Task[]; // プロジェクトの配列を保存するためのプロパティ
 
   constructor(private _type: 'active' | 'finished') {
     this.templateEl = document.getElementById('project-list')! as HTMLTemplateElement;
     this.hostEl = document.getElementById('app')! as HTMLDivElement;
-    this.assignedProjects = [];
+    this.assignedTasks = [];
 
     const importedNode = document.importNode(this.templateEl.content, true);
     this.sectionEl = importedNode.firstElementChild as HTMLElement;
     this.sectionEl.id = `${this._type}-projects`;
 
     // 新規タスク追加時に、呼び出される
-    projectState.addListener((projects: Task[]) => {
-      this.assignedProjects = projects;
+    projectState.addListener((tasks: Task[]) => {
+
+      // 新規タスクのみ配列に新たな配列'relevantTasks'に値を格納
+      const relevantTasks = tasks.filter((task): boolean => {
+        if (this._type === 'active') {  
+          return task.status === TaskStatus.Active; 
+        }
+        return task.status === TaskStatus.Finished;
+      });
+      this.assignedTasks = relevantTasks;
       this.renderProjects();
     })
 
@@ -115,7 +123,7 @@ class TaskBoard {
 
   private renderProjects() {
     const ulEl = document.getElementById(`${this._type}-projects-list`)! as HTMLUListElement;
-    for (const prjItem of this.assignedProjects) {
+    for (const prjItem of this.assignedTasks) {
       const liEl = document.createElement('li');
       liEl.textContent = prjItem.title;
       ulEl.appendChild(liEl);
