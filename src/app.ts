@@ -9,17 +9,25 @@ class Task {
 }
 
 /**************************** 状態管理用のクラス ****************************/
-type Listener = (items: Task[]) => void;
+type Listener<T> = (items: T[]) => void;
 
-class TaskState {
+class State<T> {
+  protected _listeners: Listener<T>[] = []; // サブクラスからアクセス可能
+  
+  addListener(listenerFunc: Listener<T>) {
+    this._listeners.push(listenerFunc);
+  }
+  
+}
+
+class TaskState extends State<Task> {
   private _projects: Task[];
-  private _listeners: Listener[];
   private static _instance: TaskState;
   
   // privateコンストラクタ => シングルトンなクラス
   private constructor() {
+    super();
     this._projects = [];
-    this._listeners = [];
   }
 
   static getInstance() {
@@ -30,9 +38,6 @@ class TaskState {
     return this._instance;
   }
 
-  addListener(listenerFunc: Listener) {
-    this._listeners.push(listenerFunc);
-  }
 
   addTask(title: string, description: string, manDay: number) {
     const newTask = new Task(
