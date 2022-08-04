@@ -57,7 +57,6 @@ class TaskState extends State<Task> {
 // ProjectStateはシングルトンのクラス
 const projectState = TaskState.getInstance();  // staticメソッドを呼び出す
 
-
 /** バリデーションされるオブジェクトの型 */
 interface ValidationObj {
   value: string | number;
@@ -116,6 +115,34 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   }
 }
 
+/**************************** タスクリストを作成・表示するクラス ****************************/
+class TaskItem extends Component<HTMLUListElement, HTMLLIElement> {
+  private task: Task;
+
+  get manday() {
+    if (this.task.manDay < 20) {
+      return this.task.manDay.toString() + "人日";
+    } else {
+      return (this.task.manDay / 20).toString() + '人月';
+    }
+  }
+
+  constructor(hostId: string, task: Task) {
+    super("single-project", hostId, false, task.id);
+    this.task = task;
+
+    this.configure();
+    this.renderContent();
+  }
+
+  configure(): void {}
+
+  renderContent(): void {
+    this.element.querySelector('h2')!.textContent = this.task.title;
+    this.element.querySelector('h3')!.textContent = this.manday;
+    this.element.querySelector('p')!.textContent = this.task.description;
+  }
+}
 
 /**************************** Projectのリスト（タスクボード）を表示するクラス ****************************/
 class TaskBoard extends Component<HTMLDivElement, HTMLElement>{
@@ -161,10 +188,8 @@ class TaskBoard extends Component<HTMLDivElement, HTMLElement>{
     const ulEl = document.getElementById(`${this._type}-projects-list`)! as HTMLUListElement;
     // リストをクリア
     ulEl.innerHTML = '';
-    for (const prjItem of this.assignedTasks) {
-      const liEl = document.createElement('li');
-      liEl.textContent = prjItem.title;
-      ulEl.appendChild(liEl);
+    for (const taskItem of this.assignedTasks) {
+        new TaskItem(ulEl.id, taskItem);
     }
   }
   
