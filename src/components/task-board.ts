@@ -1,4 +1,8 @@
 /// <reference path="base-component.ts" />
+/// <reference path="../decorators/autobind.ts" />
+/// <reference path="../state/task-state.ts" />
+/// <reference path="../models/drag-drop.ts" />
+/// <reference path="../models/task.ts" />
 
 namespace App {
       /**************************** Projectのリスト（タスクボード）を表示するクラス ****************************/

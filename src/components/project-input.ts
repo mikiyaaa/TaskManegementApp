@@ -1,4 +1,7 @@
 /// <reference path="base-component.ts" />
+/// <reference path="../decorators/autobind.ts" />
+/// <reference path="../util/validation.ts" />
+/// <reference path="../state/task-state.ts" />
 
 namespace App {
       /**************************** Formの表示・入力値の取得を行うクラス ****************************/

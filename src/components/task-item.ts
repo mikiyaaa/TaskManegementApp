@@ -1,3 +1,8 @@
+/// <reference path="base-component.ts" />
+/// <reference path="../decorators/autobind.ts" />
+/// <reference path="../models/drag-drop.ts" />
+/// <reference path="../models/task.ts" />
+
 namespace App {
       /**************************** タスクリストを作成・表示するクラス ****************************/
   export class TaskItem extends Component<HTMLUListElement, HTMLLIElement> implements Draggble {
