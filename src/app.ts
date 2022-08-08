@@ -1,3 +1,17 @@
+/**************************** Drag & Drop ****************************/
+// ドラッグ可能なコンポーネントに実装するためのインターフェース
+interface Draggble {
+
+  dragStartHandler(event: DragEvent): void;
+  dragEndHandler(event: DragEvent): void;
+}
+// ドロップされる場所のインターフェース
+interface DragTarget {
+  dragOverHandler(event: DragEvent): void;
+  dropHandler(event: DragEvent): void;
+  dragLeaveHandler(event: DragEvent): void;
+}
+
 /**************************** Taskのタイプを定義するクラス ****************************/
 enum TaskStatus {
   Active, Finished
@@ -88,6 +102,19 @@ function validate(target: ValidationObj): boolean {
   return isValid;
 }
 
+// Autobind decorator
+function Autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      const boundFn = originalMethod.bind(this);
+      return boundFn;
+    },
+  };
+  return adjDescriptor;
+}
+
 /**************************** コンポーネントクラス（抽象クラス） ****************************/
 abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   templateEl: HTMLTemplateElement;
@@ -116,36 +143,48 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 }
 
 /**************************** タスクリストを作成・表示するクラス ****************************/
-class TaskItem extends Component<HTMLUListElement, HTMLLIElement> {
-  private task: Task;
+class TaskItem extends Component<HTMLUListElement, HTMLLIElement> implements Draggble {
+  private _task: Task;
 
   get manday() {
-    if (this.task.manDay < 20) {
-      return this.task.manDay.toString() + "人日";
+    if (this._task.manDay < 20) {
+      return this._task.manDay.toString() + "人日";
     } else {
-      return (this.task.manDay / 20).toString() + '人月';
+      return (this._task.manDay / 20).toString() + '人月';
     }
   }
 
   constructor(hostId: string, task: Task) {
     super("single-project", hostId, false, task.id);
-    this.task = task;
+    this._task = task;
 
     this.configure();
     this.renderContent();
   }
 
-  configure(): void {}
+  @Autobind
+  dragStartHandler(event: DragEvent): void {
+    console.log(event);
+  }
+
+  dragEndHandler(_: DragEvent): void {
+    console.log('dragEnd');
+  }
+
+  configure(): void {
+    this.element.addEventListener('dragstart', this.dragStartHandler);
+    this.element.addEventListener('dragend', this.dragEndHandler);
+  }
 
   renderContent(): void {
-    this.element.querySelector('h2')!.textContent = this.task.title;
+    this.element.querySelector('h2')!.textContent = this._task.title;
     this.element.querySelector('h3')!.textContent = this.manday;
-    this.element.querySelector('p')!.textContent = this.task.description;
+    this.element.querySelector('p')!.textContent = this._task.description;
   }
 }
 
 /**************************** Projectのリスト（タスクボード）を表示するクラス ****************************/
-class TaskBoard extends Component<HTMLDivElement, HTMLElement>{
+class TaskBoard extends Component<HTMLDivElement, HTMLElement> implements DragTarget{
 
   assignedTasks: Task[]; // プロジェクトの配列を保存するためのプロパティ
 
@@ -158,7 +197,25 @@ class TaskBoard extends Component<HTMLDivElement, HTMLElement>{
     this.renderContent(); // sectionブロック内要素（h2・ul）への描画
   }
 
+  @Autobind
+  dragOverHandler(_: DragEvent): void {
+    const ulEl = this.element.querySelector('ul')!;
+    ulEl.classList.add('droppable');
+  }
+  
+  dropHandler(_: DragEvent): void {
+    
+  }
+
+  dragLeaveHandler(_: DragEvent): void {
+    
+  }
+
   configure(): void {
+    this.element.addEventListener('dragover', this.dragOverHandler);
+    this.element.addEventListener('drop', this.dropHandler);
+    this.element.addEventListener('dragleave', this.dragLeaveHandler);
+
 
     // 新規タスク追加時に、呼び出される
     projectState.addListener((tasks: Task[]) => {
@@ -217,7 +274,7 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
 
   /* イベントリスナーを設定 */
   configure() {
-    this.element.addEventListener('submit', this.submitHandler.bind(this));
+    this.element.addEventListener('submit', this.submitHandler);
   }
 
   renderContent(): void {
@@ -263,6 +320,7 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
   }
 
   /* フォーム送信時イベント */
+  @Autobind
   private submitHandler(event: Event) {
     event.preventDefault();
     
