@@ -67,7 +67,7 @@ class TaskState extends State<Task> {
 
   moveTask(taskId: string, newStatus: TaskStatus) {
     const task = this._projects.find(task => task.id === taskId);
-    if (task) {
+    if (task && task.status !== newStatus) {
       task.status = newStatus;
       this.updateListeners();
     }
