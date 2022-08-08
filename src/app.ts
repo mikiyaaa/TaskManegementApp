@@ -62,11 +62,24 @@ class TaskState extends State<Task> {
       TaskStatus.Active  // 新規追加はActive
     );
     this._projects.push(newTask);
+    this.updateListeners();
+  }
 
+  moveTask(taskId: string, newStatus: TaskStatus) {
+    const task = this._projects.find(task => task.id === taskId);
+    if (task) {
+      task.status = newStatus;
+      this.updateListeners();
+    }
+
+  }
+
+  private updateListeners() {
     for (const lisFnc of this._listeners) {
       lisFnc(this._projects.slice()); // slice()メソッドで配列のコピーを渡す
     }
   }
+
 }
 // ProjectStateはシングルトンのクラス
 const projectState = TaskState.getInstance();  // staticメソッドを呼び出す
@@ -164,7 +177,8 @@ class TaskItem extends Component<HTMLUListElement, HTMLLIElement> implements Dra
 
   @Autobind
   dragStartHandler(event: DragEvent): void {
-    console.log(event);
+    event.dataTransfer!.setData('text/plain', this._task.id);
+    event.dataTransfer!.effectAllowed = 'move';
   }
 
   dragEndHandler(_: DragEvent): void {
@@ -198,17 +212,25 @@ class TaskBoard extends Component<HTMLDivElement, HTMLElement> implements DragTa
   }
 
   @Autobind
-  dragOverHandler(_: DragEvent): void {
-    const ulEl = this.element.querySelector('ul')!;
-    ulEl.classList.add('droppable');
+  dragOverHandler(event: DragEvent): void {
+    if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+      event.preventDefault();
+      const ulEl = this.element.querySelector('ul')!;
+      ulEl.classList.add('droppable');
+    }
   }
   
-  dropHandler(_: DragEvent): void {
-    
+  @Autobind
+  dropHandler(event: DragEvent): void {
+    const taskId = event.dataTransfer!.getData('text/plain');
+    projectState.moveTask(taskId, this._type === 'active' ? TaskStatus.Active : TaskStatus.Finished);
+
   }
 
+  @Autobind
   dragLeaveHandler(_: DragEvent): void {
-    
+    const ulEl = this.element.querySelector('ul')!;
+    ulEl.classList.remove('droppable');
   }
 
   configure(): void {
