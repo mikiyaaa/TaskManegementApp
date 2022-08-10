@@ -1,10 +1,10 @@
-import { Component } from "./base-component.js";
-import { ValidationObj, validate } from "../util/validation.js";
+import Cmp from "./base-component.js";
+import * as Validation from "../util/validation.js";
 import { Autobind } from "../decorators/autobind.js";
 import { projectState } from "../state/task-state.js";
 
 /**************************** Formの表示・入力値の取得を行うクラス ****************************/
-export class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
+export class ProjectInput extends Cmp<HTMLDivElement, HTMLFormElement> {
 
     // 入力フォームへの参照
     titleInputElement: HTMLInputElement;
@@ -37,15 +37,15 @@ export class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
         const descriptionVal = this.descriptionInputElement.value;
         const manDayVal = this.manDayInputElement.value;
 
-        const validatedTitle: ValidationObj = {
+        const validatedTitle: Validation.ValidationObj = {
         value: titleVal,
         required: true,
         }
-        const validatedDesc: ValidationObj = {
+        const validatedDesc: Validation.ValidationObj = {
         value: descriptionVal,
         maxLen: 50,
         }
-        const validateManDay: ValidationObj = {
+        const validateManDay: Validation.ValidationObj = {
         value: +manDayVal,  // 数値型へ変換
         max: 1000,
         min: 1,
@@ -53,14 +53,14 @@ export class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
 
         // Form Validation
         if (
-        !validate(validatedTitle) ||
-        !validate(validatedDesc) ||
-        !validate(validateManDay)
+            !Validation.validate(validatedTitle) ||
+            !Validation.validate(validatedDesc) ||
+            !Validation.validate(validateManDay)
         ) {
         alert('不正な値です。登録できません。');
-        return;
+            return;
         } else {
-        return [titleVal, descriptionVal, +manDayVal]
+            return [titleVal, descriptionVal, +manDayVal]
         }
     }
 

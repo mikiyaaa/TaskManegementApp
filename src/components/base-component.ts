@@ -1,5 +1,5 @@
 /**************************** コンポーネントクラス（抽象クラス） ****************************/
-export abstract class Component<T extends HTMLElement, U extends HTMLElement> {
+export default abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     templateEl: HTMLTemplateElement;
     hostEl: T;
     element: U;
