@@ -1,9 +1,9 @@
-import { DragTarget } from '../models/drag-drop.js';
-import Component from './base-component.js';
-import { Task, TaskStatus } from '../models/task.js';
-import { Autobind } from '../decorators/autobind.js';
-import { projectState } from '../state/task-state.js';
-import { TaskItem } from './task-item.js';
+import { DragTarget } from '../models/drag-drop';
+import Component from './base-component';
+import { Task, TaskStatus } from '../models/task';
+import { Autobind } from '../decorators/autobind';
+import { projectState } from '../state/task-state';
+import { TaskItem } from './task-item';
 
 
 /**************************** Projectのリスト（タスクボード）を表示するクラス ****************************/

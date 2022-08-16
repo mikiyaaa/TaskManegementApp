@@ -1,5 +1,5 @@
-import { ProjectInput } from './components/project-input.js';
-import { TaskBoard } from './components/task-board.js';
+import { ProjectInput } from './components/project-input';
+import { TaskBoard } from './components/task-board';
 
 new ProjectInput();
 new TaskBoard('active');

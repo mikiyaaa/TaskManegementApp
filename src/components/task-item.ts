@@ -1,7 +1,7 @@
-import { Draggble } from '../models/drag-drop.js';
-import Component from './base-component.js';
-import { Task } from '../models/task.js';
-import { Autobind } from '../decorators/autobind.js';
+import { Draggble } from '../models/drag-drop';
+import Component from './base-component';
+import { Task } from '../models/task';
+import { Autobind } from '../decorators/autobind';
 
 /**************************** タスクリストを作成・表示するクラス ****************************/
 export class TaskItem extends Component<HTMLUListElement, HTMLLIElement> implements Draggble {
