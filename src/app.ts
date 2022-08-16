@@ -5,5 +5,4 @@ new ProjectInput();
 new TaskBoard('active');
 new TaskBoard('finished');
 
-
-
+console.log('webpack-dev-server');
